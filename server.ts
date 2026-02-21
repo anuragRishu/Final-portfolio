@@ -3,9 +3,15 @@ import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createClient } from "@supabase/supabase-js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Supabase Setup
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 const db = new Database("portfolio.db");
 
@@ -137,15 +143,85 @@ async function startServer() {
   app.use(express.json());
 
   // API Routes
-  app.get("/api/content", (req, res) => {
-    const data = db.prepare("SELECT value FROM content WHERE key = ?").get("site_data") as { value: string };
-    res.json(JSON.parse(data.value));
+  app.get("/api/content", async (req, res) => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('content')
+          .select('value')
+          .eq('key', 'site_data')
+          .single();
+        
+        if (data) {
+          return res.json(JSON.parse(data.value));
+        }
+        
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found"
+          console.error('Supabase error:', error);
+        }
+      }
+      
+      // Fallback to SQLite
+      const data = db.prepare("SELECT value FROM content WHERE key = ?").get("site_data") as { value: string };
+      res.json(JSON.parse(data.value));
+    } catch (err) {
+      console.error('Fetch error:', err);
+      // Final fallback to default
+      res.json(defaultContent);
+    }
   });
 
-  app.post("/api/content", (req, res) => {
+  app.post("/api/content", async (req, res) => {
+    const contentStr = JSON.stringify(req.body);
+    
+    // Update SQLite
     const update = db.prepare("UPDATE content SET value = ? WHERE key = ?");
-    update.run(JSON.stringify(req.body), "site_data");
+    update.run(contentStr, "site_data");
+
+    // Update Supabase if available
+    if (supabase) {
+      try {
+        const { error } = await supabase
+          .from('content')
+          .upsert({ key: 'site_data', value: contentStr }, { onConflict: 'key' });
+        
+        if (error) console.error('Supabase update error:', error);
+      } catch (err) {
+        console.error('Supabase update catch:', err);
+      }
+    }
+    
     res.json({ success: true });
+  });
+
+  // Admin Sync Route: Pushes SQLite data to Supabase
+  app.get("/api/admin/supabase-status", (req, res) => {
+    res.json({ 
+      configured: !!supabase,
+      url: supabaseUrl ? `${supabaseUrl.substring(0, 15)}...` : null
+    });
+  });
+
+  app.post("/api/admin/sync-to-supabase", async (req, res) => {
+    if (!supabase) {
+      return res.status(400).json({ error: "Supabase not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY to your environment variables." });
+    }
+
+    try {
+      const data = db.prepare("SELECT value FROM content WHERE key = ?").get("site_data") as { value: string };
+      const { error } = await supabase
+        .from('content')
+        .upsert({ key: 'site_data', value: data.value }, { onConflict: 'key' });
+
+      if (error) {
+        console.error('Supabase Sync Error:', error);
+        throw new Error(error.message + " (Check if RLS is disabled or policy is added)");
+      }
+      res.json({ success: true, message: "Data successfully pushed to Supabase!" });
+    } catch (err: any) {
+      console.error('Sync Catch Error:', err);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // Vite middleware for development
@@ -164,6 +240,11 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    if (supabase) {
+      console.log("✅ Supabase client initialized");
+    } else {
+      console.log("⚠️ Supabase client NOT initialized. Check SUPABASE_URL and SUPABASE_ANON_KEY.");
+    }
   });
 }
 

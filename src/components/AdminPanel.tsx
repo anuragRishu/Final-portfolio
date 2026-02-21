@@ -1,18 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useContent, SiteData } from '../context/ContentContext';
-import { X, Save, Plus, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
+import { X, Save, Plus, Trash2, ChevronRight, ChevronDown, Database as DbIcon, RefreshCw, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const { data, updateData } = useContent();
   const [localData, setLocalData] = useState<SiteData | null>(data);
   const [activeSection, setActiveSection] = useState<string | null>('hero');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [supabaseStatus, setSupabaseStatus] = useState<'checking' | 'connected' | 'missing'>('checking');
+
+  useEffect(() => {
+    const checkSupabase = async () => {
+      try {
+        const response = await fetch('/api/admin/supabase-status');
+        const result = await response.json();
+        if (result.configured) {
+          setSupabaseStatus('connected');
+        } else {
+          setSupabaseStatus('missing');
+        }
+      } catch (err) {
+        setSupabaseStatus('missing');
+      }
+    };
+    checkSupabase();
+  }, []);
 
   if (!localData) return null;
 
   const handleSave = async () => {
     await updateData(localData);
     onClose();
+  };
+
+  const handleSyncToSupabase = async () => {
+    if (!confirm("This will push your current preview data to Supabase. Make sure you have configured SUPABASE_URL and SUPABASE_ANON_KEY in your Render environment variables. Continue?")) return;
+    
+    setIsSyncing(true);
+    try {
+      const response = await fetch('/api/admin/sync-to-supabase', {
+        method: 'POST',
+      });
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);
+      } else {
+        alert("Sync failed: " + result.error);
+      }
+    } catch (err) {
+      alert("Sync error: " + (err as Error).message);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const updateField = (section: keyof SiteData, field: string, value: any) => {
@@ -77,6 +117,21 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             <p className="text-white/40 text-sm">Customize your portfolio content</p>
           </div>
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
+              <div className={`w-2 h-2 rounded-full ${supabaseStatus === 'connected' ? 'bg-green-500' : supabaseStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
+                Supabase: {supabaseStatus}
+              </span>
+            </div>
+            <button 
+              onClick={handleSyncToSupabase}
+              disabled={isSyncing || supabaseStatus !== 'connected'}
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white px-4 py-2.5 rounded-full text-sm font-bold transition-all border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+              title={supabaseStatus === 'connected' ? "Push local data to Supabase" : "Supabase not configured in AI Studio Secrets"}
+            >
+              {isSyncing ? <RefreshCw size={16} className="animate-spin" /> : <DbIcon size={16} />}
+              Sync to Supabase
+            </button>
             <button 
               onClick={handleSave}
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-full font-bold transition-all"
@@ -92,6 +147,17 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-8 space-y-4 scrollbar-hide">
           
+          {supabaseStatus === 'missing' && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl mb-6">
+              <p className="text-red-400 text-sm font-medium flex items-center gap-2">
+                <Info size={16} /> Supabase is not configured in this preview.
+              </p>
+              <p className="text-white/40 text-xs mt-1">
+                To sync your data, you must add <code className="text-white/60">SUPABASE_URL</code> and <code className="text-white/60">SUPABASE_ANON_KEY</code> to the <b>Secrets</b> panel in AI Studio.
+              </p>
+            </div>
+          )}
+
           {/* Navbar Section */}
           <SectionHeader id="navbar" title="Navigation Bar" />
           <AnimatePresence>
