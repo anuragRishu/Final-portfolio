@@ -41,7 +41,7 @@ const defaultContent = {
     title: "CRAFTING VISUAL STORIES",
     subtitle: "Transforming raw footage into cinematic experiences. Specializing in high-end VFX, motion graphics, and narrative-driven video editing for global brands and creators.",
     profileImage: "https://picsum.photos/seed/anurag/400/400",
-    intro: "Hi, I'm Anurag. I bring stories to life through pixels and motion.",
+    intro: "Hi, I'm Anurag Chaurasiya. I bring stories to life through pixels and motion.",
     primaryBtn: "View Showreel",
     primaryBtnUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     secondaryBtn: "Latest Projects",
