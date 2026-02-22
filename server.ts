@@ -27,9 +27,9 @@ db.exec(`
 
 const defaultContent = {
   navbar: {
-    logo: "A",
-    name: "Anurag Chaurasiya",
-    resumeUrl: "#",
+    logo: data.navbar.logo,
+    name: data.navbar.name,
+    resumeUrl: data.navbar.resumeUrl,
     items: [
       { name: 'Work', href: '#work' },
       { name: 'Services', href: '#services' },
