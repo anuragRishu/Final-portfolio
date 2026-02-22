@@ -4,8 +4,8 @@ import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
-// import { useContent } from '../Final-portfolio-main/src/context/ContentContext';
-// const { data } = useContent();
+import { useContent } from '../Final-portfolio-main/src/context/ContentContext';
+const { data } = useContent();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,15 +39,15 @@ const defaultContent = {
     ]
   },
   hero: {
-    badge: "Professional VFX Artist & Video Editor",
-    title: "CRAFTING VISUAL STORIES",
-    subtitle: "Transforming raw footage into cinematic experiences. Specializing in high-end VFX, motion graphics, and narrative-driven video editing for global brands and creators.",
-    profileImage: "https://picsum.photos/seed/anurag/400/400",
-    intro: "Hi, I'm Anurag Chaurasiya. I bring stories to life through pixels and motion.",
-    primaryBtn: "View Showreel",
-    primaryBtnUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    secondaryBtn: "Latest Projects",
-    secondaryBtnUrl: "#work",
+    badge: data.hero.badge,
+    title: data.hero.title,
+    subtitle: data.hero.subtitle,
+    profileImage: data.hero.profileImage,
+    intro: data.hero.intro,
+    primaryBtn: data.hero.primaryBtn,
+    primaryBtnUrl: data.hero.primaryBtnUrl,
+    secondaryBtn: data.hero.secondaryBtn,
+    secondaryBtnUrl: data.hero.secondaryBtnUrl,
     colors: {
       accent: "#6366f1",
       gradient: ["#ffffff", "#6366f1", "#a855f7"]
