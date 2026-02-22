@@ -27,9 +27,9 @@ db.exec(`
 
 const defaultContent = {
   navbar: {
-    logo: data.navbar.logo,
-    name: data.navbar.name,
-    resumeUrl: data.navbar.resumeUrl,
+    logo: "A",
+    name: "Anurag Chaurasiya",
+    resumeUrl: "#",
     items: [
       { name: 'Work', href: '#work' },
       { name: 'Services', href: '#services' },
@@ -38,16 +38,16 @@ const defaultContent = {
       { name: 'Contact', href: '#contact' },
     ]
   },
-  hero: {
-    badge: data.hero.badge,
-    title: data.hero.title,
-    subtitle: data.hero.subtitle,
-    profileImage: data.hero.profileImage,
-    intro: data.hero.intro,
-    primaryBtn: data.hero.primaryBtn,
-    primaryBtnUrl: data.hero.primaryBtnUrl,
-    secondaryBtn: data.hero.secondaryBtn,
-    secondaryBtnUrl: data.hero.secondaryBtnUrl,
+ hero: {
+    badge: "Professional VFX Artist & Video Editor",
+    title: "CRAFTING VISUAL STORIES",
+    subtitle: "Transforming raw footage into cinematic experiences. Specializing in high-end VFX, motion graphics, and narrative-driven video editing for global brands and creators.",
+    profileImage: "https://picsum.photos/seed/anurag/400/400",
+    intro: "Hi, I'm Anurag. I bring stories to life through pixels and motion.",
+    primaryBtn: "View Showreel",
+    primaryBtnUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    secondaryBtn: "Latest Projects",
+    secondaryBtnUrl: "#work",
     colors: {
       accent: "#6366f1",
       gradient: ["#ffffff", "#6366f1", "#a855f7"]
