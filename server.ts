@@ -4,8 +4,8 @@ import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
-import { useContent } from '../Final-portfolio-main/src/context/ContentContext';
-const { data } = useContent();
+// import { useContent } from '../Final-portfolio-main/src/context/ContentContext';
+// const { data } = useContent();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +42,7 @@ const defaultContent = {
     badge: "Professional VFX Artist & Video Editor",
     title: "CRAFTING VISUAL STORIES",
     subtitle: "Transforming raw footage into cinematic experiences. Specializing in high-end VFX, motion graphics, and narrative-driven video editing for global brands and creators.",
-    profileImage: data.hero.profileImage,
+    profileImage: "https://picsum.photos/seed/anurag/400/400",
     intro: "Hi, I'm Anurag Chaurasiya. I bring stories to life through pixels and motion.",
     primaryBtn: "View Showreel",
     primaryBtnUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
